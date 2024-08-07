@@ -26,7 +26,6 @@
 (straight-use-package 'rg)
 (straight-use-package 'yasnippet)
 (straight-use-package 'yasnippet-snippets)
-(straight-use-package 'highlight-indent-guides)
 (straight-use-package 'move-text)
 (straight-use-package 'swiper)
 (straight-use-package 'ivy)
@@ -146,17 +145,6 @@
         (set-face-foreground 'whitespace-tab "#cd00cd")
         (set-face-background 'whitespace-tab 'unspecified)))))
 
-(use-package display-line-numbers
-  :if (>= emacs-major-version 26)
-  :hook ((find-file after-change-major-mode) . (lambda () (display-line-numbers-mode 1)))
-  :config
-  (set-face-background 'line-number-current-line "yellow")
-  (set-face-foreground 'line-number-current-line "black"))
-
-(use-package linum
-  :if (<= emacs-major-version 25)
-  :hook ((find-file after-change-major-mode) . (lambda () (global-linum-mode 1))))
-
 (use-package yasnippet
   :diminish yas-minor-mode
   :commands (yas-expand)
@@ -164,26 +152,7 @@
   :config
   (yas-reload-all nil))
 
-(use-package highlight-indent-guides
-  :hook (prog-mode . highlight-indent-guides-mode)
-  :diminish highlight-indent-guides-mode
-  :custom
-  (highlight-indent-guides-method 'column)
-  (highlight-indent-guides-auto-enabled nil)
-  (highlight-indent-guides-responsive 'top)
-  (highlight-indent-guides-delay 0)
-  :config
-  (if (display-graphic-p)
-      (progn
-        (set-face-background 'highlight-indent-guides-odd-face "#eddfba")
-        (set-face-background 'highlight-indent-guides-even-face "#eddfba")
-        (set-face-background 'highlight-indent-guides-top-odd-face "#00ff7f")
-        (set-face-background 'highlight-indent-guides-top-even-face "#00ff7f"))
-    (progn
-      (set-face-background 'highlight-indent-guides-odd-face "#cd00cd")
-      (set-face-background 'highlight-indent-guides-even-face "#cd00cd")
-      (set-face-background 'highlight-indent-guides-top-odd-face "#00cdcd")
-      (set-face-background 'highlight-indent-guides-top-even-face "#00cdcd"))))
+(setq completion-ignore-case t)
 
 (defun custom/delete-word (arg)
   "Delete characters forward until encountering the end of a word.
@@ -237,6 +206,7 @@ With argument ARG, do this that many times."
   ;; (add-to-list 'eglot-stay-out-of 'eldoc)
   (setq eglot-report-progress nil)
   (setq eglot-ignored-server-capabilities '(:documentHighlightProvider))
+  (setq eglot-events-buffer-size 0)
   :hook
   ((c++-mode c-mode) . eglot-ensure)
   (eglot-managed-mode . custom/eglot-managed-mode-initialize))
