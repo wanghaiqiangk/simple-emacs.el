@@ -1,0 +1,11 @@
+*~
+custom.el
+history
+recentf
+straight/
+eln-cache/
+transient/
+tramp
+places
+ido.last
+smex-items
