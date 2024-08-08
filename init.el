@@ -125,26 +125,6 @@
   :config
   (add-to-list 'rg-custom-type-aliases '("chp" . "*.[chH] *.[ch]pp *.cc *.C")))
 
-(use-package whitespace
-  :diminish global-whitespace-mode
-  :config
-  (progn
-    (global-whitespace-mode 1)
-    (setq whitespace-style (quote (face tabs trailing tab-mark)))
-    (setq whitespace-display-mappings
-          ;; all numbers are unicode codepoint in decimal. e.g. (insert-char 182 1)
-          '(
-            (tab-mark 9 [10155 9] [92 9])
-            ))
-    (if (display-graphic-p)
-        (progn
-          (set-face-foreground 'whitespace-newline "#eddfba")
-          (set-face-inverse-video 'whitespace-tab nil))
-      (progn
-        (set-face-foreground 'whitespace-newline "#cd00cd")
-        (set-face-foreground 'whitespace-tab "#cd00cd")
-        (set-face-background 'whitespace-tab 'unspecified)))))
-
 (use-package yasnippet
   :diminish yas-minor-mode
   :commands (yas-expand)
@@ -251,5 +231,32 @@ With argument ARG, do this that many times."
 
 (load custom-file)
 (load (expand-file-name "text-manipulate.el" user-emacs-directory))
+
+(use-package display-line-numbers
+  :if (>= emacs-major-version 26)
+  :config
+  (global-display-line-numbers-mode t)
+  (set-face-background 'line-number-current-line "yellow")
+  (set-face-foreground 'line-number-current-line "black"))
+
+(use-package whitespace
+  :diminish global-whitespace-mode
+  :config
+  (progn
+    (global-whitespace-mode 1)
+    (setq whitespace-style (quote (face tabs trailing tab-mark)))
+    (setq whitespace-display-mappings
+          ;; all numbers are unicode codepoint in decimal. e.g. (insert-char 182 1)
+          '(
+            (tab-mark 9 [10155 9] [92 9])
+            ))
+    (if (display-graphic-p)
+        (progn
+          (set-face-foreground 'whitespace-newline "#eddfba")
+          (set-face-inverse-video 'whitespace-tab nil))
+      (progn
+        (set-face-foreground 'whitespace-newline "#cd00cd")
+        (set-face-foreground 'whitespace-tab "#cd00cd")
+        (set-face-background 'whitespace-tab 'unspecified)))))
 
 ;;; init.el ends here
