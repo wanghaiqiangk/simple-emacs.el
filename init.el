@@ -245,6 +245,14 @@ to uppercase"
   :config
   (define-key evil-insert-state-map (kbd "M-u") #'custom/uppercase-previous-symbol))
 
+(use-package smerge-mode
+  :bind
+  (:repeat-map smerge-repeat-map
+               ("n" . smerge-next)
+               ("p" . smerge-prev)
+               ("u" . smerge-keep-upper)
+               ("l" . smerge-keep-lower)))
+
 ;;; programming languages
 ;; C-like
 (setq c-default-style
