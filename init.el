@@ -204,7 +204,13 @@ With argument ARG, do this that many times."
 
 (use-package company
   :hook
-  (after-init . global-company-mode))
+  (after-init . global-company-mode)
+  :bind
+  (:map company-active-map
+        ("<tab>" . company-complete-selection)
+        ("C-w" . nil)
+        ("RET" . nil)
+        ("<return>" . nil)))
 
 (use-package isearch
   :config
