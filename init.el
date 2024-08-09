@@ -32,6 +32,8 @@
 (straight-use-package 'counsel)
 (straight-use-package 'ivy-hydra)
 (straight-use-package 'solarized-theme)
+(straight-use-package 'evil)
+(straight-use-package 'goto-chg)
 ;; language major modes
 (straight-use-package 'racket-mode)
 
@@ -216,6 +218,26 @@ With argument ARG, do this that many times."
   :bind
   (("C-." . isearch-forward-symbol-at-point)
    ("C-c n" . lazy-highlight-cleanup)))
+
+(defun custom/uppercase-previous-symbol ()
+  "Used in insert-mode and change the previous symbol (or word in Vim lang)
+to uppercase"
+  (interactive)
+  (let (beg end)
+    (when (eq evil-state 'insert)
+      (forward-symbol -1)
+      (setq beg (point))
+      (forward-symbol 1)
+      (setq end (point))
+      (evil-upcase beg end))))
+
+(use-package evil
+  :init
+  (evil-mode t)
+  (setq evil-symbol-word-search t)
+  (defalias 'forward-evil-word 'forward-evil-symbol)
+  :config
+  (define-key evil-insert-state-map (kbd "M-u") #'custom/uppercase-previous-symbol))
 
 ;;; programming languages
 ;; C-like
