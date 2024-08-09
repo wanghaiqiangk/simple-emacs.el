@@ -34,6 +34,7 @@
 (straight-use-package 'solarized-theme)
 (straight-use-package 'evil)
 (straight-use-package 'goto-chg)
+(straight-use-package 'topsy)
 ;; language major modes
 (straight-use-package 'racket-mode)
 
@@ -262,6 +263,11 @@ to uppercase"
                ("p" . smerge-prev)
                ("u" . smerge-keep-upper)
                ("l" . smerge-keep-lower)))
+
+(use-package topsy
+  :hook
+  (prog-mode . topsy-mode)
+  (magit-section-mode . topsy-mode))
 
 ;;; programming languages
 ;; C-like
