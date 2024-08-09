@@ -179,7 +179,17 @@ With argument ARG, do this that many times."
 
 (use-package eglot
   :config
-  (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
+  (add-to-list 'eglot-server-programs '((c++-mode c-mode) .
+                                        ("clangd"
+                                         "-j=8"
+                                         "--log=error"
+                                         "--malloc-trim"
+                                         "--background-index"
+                                         "--clang-tidy"
+                                         "--completion-style=detailed"
+                                         "--pch-storage=memory"
+                                         "--header-insertion=never"
+                                         "--header-insertion-decorators=0")))
   ;; (add-to-list 'eglot-stay-out-of 'eldoc)
   (setq eglot-report-progress nil)
   (setq eglot-ignored-server-capabilities '(:documentHighlightProvider))
