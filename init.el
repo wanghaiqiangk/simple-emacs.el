@@ -1,42 +1,48 @@
 ;;; init.el -*- lexical-binding: t; no-byte-compile: t; -*-
 ;;; Code:
 
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name
-        "straight/repos/straight.el/bootstrap.el"
-        (or (bound-and-true-p straight-base-dir)
-            user-emacs-directory)))
-      (bootstrap-version 7))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+(require 'package)
+(setq package-archives '(("gnu"    . "https://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
+                         ("nongnu" . "https://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")
+                         ("melpa"  . "https://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
+(package-initialize)
 
-;; packages here
-(straight-use-package 'use-package)
-(straight-use-package 'smex)
-(straight-use-package 'company)
-(straight-use-package 'magit)
-(straight-use-package 'diminish)
-(straight-use-package 'rg)
-(straight-use-package 'yasnippet)
-(straight-use-package 'yasnippet-snippets)
-(straight-use-package 'move-text)
-(straight-use-package 'swiper)
-(straight-use-package 'ivy)
-(straight-use-package 'counsel)
-(straight-use-package 'ivy-hydra)
-(straight-use-package 'solarized-theme)
-(straight-use-package 'evil)
-(straight-use-package 'goto-chg)
-(straight-use-package 'topsy)
-;; language major modes
-(straight-use-package 'racket-mode)
+(require 'cl-lib)
+
+(defvar my-packages
+  '(use-package
+     smex
+     company
+     magit
+     diminish
+     rg
+     yasnippet
+     yasnippet-snippets
+     move-text
+     swiper
+     ivy
+     counsel
+     ivy-hydra
+     solarized-theme
+     evil
+     goto-chg
+     topsy
+     racket-mode
+     )
+  "A list of packages to ensure are installed at launch.")
+
+(defun my-packages-installed-p ()
+  (cl-loop for p in my-packages
+           when (not (package-installed-p p)) do (cl-return nil)
+           finally (cl-return t)))
+
+(unless (my-packages-installed-p)
+  ;; check for new packages (package versions)
+  (package-refresh-contents)
+  ;; install the missing packages
+  (dolist (p my-packages)
+    (when (not (package-installed-p p))
+      (package-install p))))
 
 ;; https://git.sr.ht/~technomancy/better-defaults
 (progn
@@ -276,7 +282,9 @@ to uppercase"
         (awk-mode . "awk")
         (other . "stroustrup")))
 
-(load custom-file)
+(when (file-exists-p custom-file)
+  (load custom-file)
+  )
 (load (expand-file-name "text-manipulate.el" user-emacs-directory))
 
 (use-package display-line-numbers
