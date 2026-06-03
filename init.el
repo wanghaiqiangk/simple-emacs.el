@@ -27,7 +27,7 @@
      evil
      goto-chg
      topsy
-     rocket-mode
+     racket-mode
      company-box
      fzf
      ;; helm
