@@ -27,7 +27,12 @@
      evil
      goto-chg
      topsy
-     racket-mode
+     rocket-mode
+     company-box
+     fzf
+     ;; helm
+     ido-completing-read+
+     clang-format
      )
   "A list of packages to ensure are installed at launch.")
 
@@ -97,7 +102,8 @@
     (setq backup-directory-alist `(("." . ,(concat user-emacs-directory
                                                    "backups")))))
   (column-number-mode 1)
-  (mouse-avoidance-mode 'exile))
+  (mouse-avoidance-mode 'exile)
+  (setq compilation-skip-threshold 2))
 
 (server-start)
 (global-unset-key (kbd "C-z"))
@@ -195,9 +201,7 @@ With argument ARG, do this that many times."
                                          "--clang-tidy"
                                          "--completion-style=detailed"
                                          "--pch-storage=memory"
-                                         "--header-insertion=never"
-                                         "--header-insertion-decorators=0")))
-  ;; (add-to-list 'eglot-stay-out-of 'eldoc)
+                                         "--header-insertion-decorators")))
   (setq eglot-report-progress nil)
   (setq eglot-ignored-server-capabilities '(:documentHighlightProvider))
   (setq eglot-events-buffer-size 0)
@@ -229,6 +233,10 @@ With argument ARG, do this that many times."
         ("RET" . nil)
         ("<return>" . nil)))
 
+(use-package company-box
+  :diminish company-box-mode
+  :hook (company-mode . company-box-mode))
+
 (use-package isearch
   :config
   (setq isearch-lazy-count t
@@ -256,19 +264,35 @@ to uppercase"
 
 (use-package evil
   :init
-  (evil-mode t)
+  (evil-mode -1)
   (setq evil-symbol-word-search t)
   (defalias 'forward-evil-word 'forward-evil-symbol)
   :config
-  (define-key evil-insert-state-map (kbd "M-u") #'custom/uppercase-previous-symbol))
+  (define-key evil-insert-state-map (kbd "M-u") #'custom/uppercase-previous-symbol)
+  (evil-set-leader nil (kbd "SPC"))
+  (define-key evil-normal-state-map (kbd "<leader>ff") 'ido-find-file)
+  (define-key evil-normal-state-map (kbd "<leader>fr") 'counsel-recentf)
+  (define-key evil-normal-state-map (kbd "<leader>bb") 'ido-switch-buffer)
+  (define-key evil-normal-state-map (kbd "gcc") 'comment-line)
+  (define-key evil-visual-state-map (kbd "gcc") 'comment-dwim)
+  (define-key evil-normal-state-map (kbd "C-u") 'evil-scroll-up)
+  (define-key evil-visual-state-map (kbd "C-u") 'evil-scroll-up)
+  (define-key evil-insert-state-map (kbd "C-u") 'evil-delete-back-to-indentation)
+  (define-key evil-normal-state-map (kbd "<leader>/") 'rg))
 
-(use-package smerge-mode
-  :bind
-  (:repeat-map smerge-repeat-map
-               ("n" . smerge-next)
-               ("p" . smerge-prev)
-               ("u" . smerge-keep-upper)
-               ("l" . smerge-keep-lower)))
+(repeat-mode 1)
+(defun repeatify (repeat-map)
+  "Set the `repeat-map' property on all commands bound in REPEAT-MAP."
+  (named-let process ((keymap (symbol-value repeat-map)))
+    (map-keymap
+     (lambda (_key cmd)
+       (cond
+        ((symbolp cmd) (put cmd 'repeat-map repeat-map))
+        ((keymapp cmd) (process cmd))))
+     keymap)))
+
+(with-eval-after-load 'smerge-mode
+  (repeatify 'smerge-basic-map))
 
 (use-package topsy
   :hook
@@ -283,8 +307,7 @@ to uppercase"
         (other . "stroustrup")))
 
 (when (file-exists-p custom-file)
-  (load custom-file)
-  )
+  (load custom-file))
 (load (expand-file-name "text-manipulate.el" user-emacs-directory))
 
 (use-package display-line-numbers
@@ -313,5 +336,78 @@ to uppercase"
         (set-face-foreground 'whitespace-newline "#cd00cd")
         (set-face-foreground 'whitespace-tab "#cd00cd")
         (set-face-background 'whitespace-tab 'unspecified)))))
+
+(use-package magit
+  :init
+  (setq magit-define-global-key-bindings 'recommended)
+  :config
+  (setq magit-diff-refine-hunk t)
+  (setq magit-diff-refine-ignore-whitespace t)
+  (setq magit-ediff-dwim-show-on-hunks t)
+  (setq magit-completing-read-function 'magit-ido-completing-read))
+
+(defun toggle-window-split ()
+  (interactive)
+  (if (= (count-windows) 2)
+      (let* ((this-win-buffer (window-buffer))
+             (next-win-buffer (window-buffer (next-window)))
+             (this-win-edges (window-edges (selected-window)))
+             (next-win-edges (window-edges (next-window)))
+             (this-win-2nd (not (and (<= (car this-win-edges)
+                                         (car next-win-edges))
+                                     (<= (cadr this-win-edges)
+                                         (cadr next-win-edges)))))
+             (splitter
+              (if (= (car this-win-edges)
+                     (car (window-edges (next-window))))
+                  'split-window-horizontally
+                'split-window-vertically)))
+        (delete-other-windows)
+        (let ((first-win (selected-window)))
+          (funcall splitter)
+          (if this-win-2nd (other-window 1))
+          (set-window-buffer (selected-window) this-win-buffer)
+          (set-window-buffer (next-window) next-win-buffer)
+          (select-window first-win)
+          (if this-win-2nd (other-window 1))))))
+
+(define-key ctl-x-4-map "t" 'toggle-window-split)
+
+(load (expand-file-name "misc-cmds.el" user-emacs-directory))
+(global-set-key (kbd "C-x k") 'kill-buffer-and-its-windows)
+(global-set-key [remap quit-window] 'quit-window-delete)
+
+;; (use-package fzf
+;;   :bind
+;;   (("C-x C-f" . (lambda ()
+;;                   (interactive)
+;;                   (let* ((pj (project-current t))
+;;                          (root (project-root pj)))
+;;                     (fzf-with-command "fd --hidden --follow --exclude \".git\" --exclude \".cache\"" #'fzf--action-find-file root))))))
+
+(use-package ansi-color
+  :hook (compilation-filter . ansi-color-compilation-filter))
+
+(defun smerge-resolve-all-in-file-to (to-keep)
+  "Resolves all conflicts inside a file in preference of TO-KEEP
+
+TO-KEEP decides which part to keep and is one of `upper',
+`lower', `base'"
+  (interactive
+   (list (completing-read "Keeping (upper, base, lower): "
+                          '(upper base lower))))
+  (let ((resolve-func
+         (pcase to-keep
+           ("upper" 'smerge-keep-upper)
+           ("base"  'smerge-keep-base)
+           ("lower" 'smerge-keep-lower)
+           (_ (error "Unknown resolution argument!"))))
+        (num-chars-bfore (point-max)))
+    (save-excursion
+      (goto-char (point-min))
+      (while (ignore-errors (not (smerge-next)))
+        (funcall resolve-func)))
+    (when (= num-chars-bfore (point-max))
+      (message "No conflicts were found"))))
 
 ;;; init.el ends here
