@@ -14,6 +14,7 @@
      smex
      company
      magit
+     magit-ido
      diminish
      rg
      yasnippet
@@ -345,6 +346,14 @@ to uppercase"
   (setq magit-diff-refine-ignore-whitespace t)
   (setq magit-ediff-dwim-show-on-hunks t)
   (setq magit-completing-read-function 'magit-ido-completing-read))
+
+(with-eval-after-load 'magit
+  (require 'magit-ido)
+  (setq magit-completing-read-function
+        'magit-ido-completing-read)
+  ;; Optional:
+  (keymap-set ido-common-completion-map
+              "C-x g" 'magit-ido-enter-magit-status))
 
 (defun toggle-window-split ()
   (interactive)
