@@ -104,7 +104,8 @@
                                                    "backups")))))
   (column-number-mode 1)
   (mouse-avoidance-mode 'exile)
-  (setq compilation-skip-threshold 2))
+  (setq compilation-skip-threshold 2)
+  (setq visible-bell nil))
 
 (server-start)
 (global-unset-key (kbd "C-z"))
@@ -418,5 +419,11 @@ TO-KEEP decides which part to keep and is one of `upper',
         (funcall resolve-func)))
     (when (= num-chars-bfore (point-max))
       (message "No conflicts were found"))))
+
+(if (eq system-type 'darwin)
+    (setq mac-command-modifier      'meta
+          mac-option-modifier       'super
+          mac-control-modifier      'control
+          mac-function-modifier     'hyper))
 
 ;;; init.el ends here
